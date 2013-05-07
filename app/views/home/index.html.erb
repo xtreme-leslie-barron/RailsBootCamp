@@ -1,0 +1,14 @@
+<h1>Hello, Rails!</h1>
+
+<%= @is_image %><br/>
+
+<% @tweets.each do |tweet| %>
+  
+  <img src="<%= tweet.profile_image_url %>" alt="bleh"/>
+  <b><%= tweet.from_user %></b><br/>
+  <%= tweet.text %><br/>
+  <%= tweet.created_at %><br/>
+  <br/>
+<% end %>
+
+
