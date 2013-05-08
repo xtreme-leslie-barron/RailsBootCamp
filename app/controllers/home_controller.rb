@@ -4,13 +4,28 @@ require 'uri'
 
 
 class HomeController < ApplicationController
-  def index
+  @@forward_cache = {}
+  @@is_image_cache = {}
 
+  def index
+  end
+
+
+  def search
+  	q = params["q"]
+
+	uri = URI("http://search.twitter.com")
+	uri.path = "/search.json"
+	uri.query = "q=" + URI.encode_www_form_component(q) +  "&result_type=mixed&include_entities=true"
+
+
+	puts uri
+
+	count = 1
 
   	@tweets = []
 
-  	uri = URI('http://search.twitter.com/search.json?q=blizzard&include_entities=true&result_type=mixed')
-  	@http_response = Net::HTTP.get(uri) # => String
+  	@http_response = Net::HTTP.get(uri)
 
   	@twitter_response = JSON.parse(@http_response)
 
@@ -18,28 +33,65 @@ class HomeController < ApplicationController
   		@tweets.push(Tweet.new(tweet_json))
   	}
 
-  	@is_image = is_url_image?('http://i.imgur.com/Xkt8Cno.jpg')
+  	@tweets.each{|tweet|
+  		tweet.div_id = "tweet_" + count.to_s
+  		count += 1
+  		if tweet.entities.key?("urls")
+  			tweet.entities["urls"].each{ |url_hash|
+  				tweet.links.push(url_hash["expanded_url"])
+  			}
+  		end
+  		if tweet.entities.key?("media")
+  			tweet.entities["media"].each{ |media_hash|
+  				if(media_hash["type"] == "photo")
+  					tweet.twitter_images.push(media_hash["media_url"])
+  				end
+  			}
+  		end
+  	}
 
-  	puts forward_url('http://t.co/o5mQqanp6c')
-
-  	#uri = URI('http://example.com/index.html')
-	#params = { :limit => 10, :page => 3 }
-	#uri.query = URI.encode_www_form(params)
+  	render :layout => false
 
   end
+
+  def getImage
+	if @@forward_cache.key?(params["url"])
+		url = @@forward_cache[params["url"]]
+	else
+		url = forward_url(params["url"])
+		@@forward_cache[params["url"]] = url
+	end
+
+	if !@@is_image_cache.key?(url)
+		@@is_image_cache[url] = is_url_image?(url)
+	end	
+
+	if @@is_image_cache[url]
+		render :inline => '<img src="' + url +'" alt="bleh" />'
+	else
+		render :nothing => true
+	end  	
+  end
+
 
   def is_url_image?(url)
 	uri = URI(url)
 
-	req = Net::HTTP::Head.new(uri.path)
-
-	response = Net::HTTP.start(uri.host, uri.port) do |http|
-	  http.request(req)
+	if uri.query != nil
+		req = Net::HTTP::Head.new(uri.path+ '?' + uri.query)
+	elsif uri.path != nil and uri.path != ''
+		req = Net::HTTP::Head.new(uri.path)
+	else
+		req = Net::HTTP::Head.new('/')
 	end
 
-	puts "URL: " + url
-	puts "Code: " + response.code
-	response.each{ |k, v| puts "#{k} => #{v}"}
+	begin
+		response = Net::HTTP.start(uri.host, uri.port) do |http|
+		  http.request(req)
+		end
+	rescue
+		return false
+	end
 
 	if response.code == "200" and response.key?("content-type")
 		return response["content-type"].starts_with?("image")
@@ -52,25 +104,27 @@ class HomeController < ApplicationController
   def forward_url(url)
   	while true do
 
-  		puts "looped"
 		uri = URI(url)
 
-		req = Net::HTTP::Head.new(uri.path)
+		if uri.query != nil
+			req = Net::HTTP::Head.new(uri.path+ '?' + uri.query)
+		elsif uri.path != nil and uri.path != ''
+			req = Net::HTTP::Head.new(uri.path)
+		else
+			req = Net::HTTP::Head.new('/')
+		end
 
-		puts "URI: " + uri.to_s
-		puts uri.to_json
-		puts "query"
-		puts uri.query
-		puts "bleh"
-
-		response = Net::HTTP.start(uri.host, uri.port) do |http|
-		  http.request(req)
+		begin
+			response = Net::HTTP.start(uri.host, uri.port) do |http|
+			  http.request(req)
+			end
+		rescue
+			return url
 		end
 
 		if response.code.starts_with?("3") and response.key?("location")
 			url = response["location"]
 		else
-			puts response.code
 			return url
 		end
 	end

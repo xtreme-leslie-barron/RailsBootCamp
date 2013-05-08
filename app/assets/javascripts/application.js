@@ -13,3 +13,31 @@
 //= require jquery
 //= require jquery_ujs
 //= require_tree .
+$(function() {
+  $('#search-button').click(getTweets);
+});
+
+function getTweets() {
+	$('#search-button').attr('disabled', true);
+	$('#search-button').html('Searching...');
+	$.ajax({
+	  url: '/search/' + encodeURIComponent($('#q').attr('value')),
+	  success: function(data, status, xhr) {
+	    $('#tweets-div').html(data);
+	    
+	  },
+	  complete: function() {
+	  	$('#search-button').removeAttr('disabled');
+	  	$('#search-button').html('Search');
+	  }
+	});
+}
+
+function getImage(url, id) {
+	$.ajax({
+	  url: '/getImage/?url=' + encodeURIComponent(url),
+	  success: function(data, status, xhr) {
+	    $('#' + id).append(data);
+	  }
+	});
+}
