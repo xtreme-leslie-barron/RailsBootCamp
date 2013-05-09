@@ -1,7 +1,7 @@
 Bootcamp::Application.routes.draw do
   root :to => "home#index"
-  match "search/:q" => "home#search", :as => "search"
-  match "getImage" => "home#getImage", :as => "search"
+  match "search/:q" => "home#search"
+  match "getImage" => "home#getImage"
 
 
   # The priority is based upon order of creation:

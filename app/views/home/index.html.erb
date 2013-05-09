@@ -1,14 +1,17 @@
 
 
-<h1>Rails Bootcamp</h1>
+<div class="page-header container-fluid">
+	<h1 class="row-fluid">Rails Bootcamp</h1>
+</div>
 
 
-<%= label_tag(:q, "Search for:") %>
-<%= text_field_tag(:q) %>
-<button type="button" id="search-button">Search</button>
+<div class="form-search container-fluid">
+	<input type="text" name="q" id="q" />
+	<button type="button" id="search-button" class="btn btn-primary">Search</button>
+</div>
 
+<br/>
 
-
-<div id="tweets-div">
+<div id="tweets-div" class="span9 container-fluid">
 </div>
 

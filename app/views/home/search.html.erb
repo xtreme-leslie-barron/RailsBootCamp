@@ -6,14 +6,19 @@
   <% end %>
 <% end %>
 
+<ul class="unstyled">
 <% @tweets.each do |tweet| %>
-  <img src="<%= tweet.profile_image_url %>" alt="bleh"/>
-  <b><%= tweet.from_user %></b><br/>
-  <%= tweet.text %><br/>
-  <%= tweet.created_at %><br/>
-  <div id=<%= tweet.div_id %>> </div>
-  <% tweet.twitter_images.each do |img| %>
-  	<img src="<%= img %>" alt="bleh"/>
-  <% end %>
-  <br/>
+	<li class="row-fluid well well-small" >
+		<img src="<%= tweet.profile_image_url%>" alt="bleh"/>
+		<strong><%= tweet.from_user %></strong>
+		<small class="pull-right"><%= tweet.created_at[0..-10] %></small><br/>
+		<p><%= tweet.text %></p>
+		<div id=<%= tweet.div_id %>>
+			<% tweet.twitter_images.each do |img| %>
+				<img src="<%= img %>" alt="bleh"/>
+			<% end %>
+		 </div>
+		<br/>
+	</li>
 <% end %>
+</ul>

@@ -15,9 +15,18 @@
 //= require_tree .
 $(function() {
   $('#search-button').click(getTweets);
+  $('input[type=text]').on('keyup', function(e) {
+    if (e.which == 13) {
+        getTweets();
+    }
+  });
 });
 
 function getTweets() {
+
+	if(!$('#q').attr('value'))
+		return;
+
 	$('#search-button').attr('disabled', true);
 	$('#search-button').html('Searching...');
 	$.ajax({
